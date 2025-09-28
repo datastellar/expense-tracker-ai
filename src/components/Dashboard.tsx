@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 import { DollarSign, Calendar, TrendingUp, Tag } from 'lucide-react'
-import { Expense } from '@/types'
+import { Expense, CATEGORY_COLORS } from '@/types'
 import { formatCurrency, calculateExpenseSummary } from '@/utils'
 
 interface DashboardProps {
@@ -91,14 +91,7 @@ export default function Dashboard({ expenses, loading }: DashboardProps) {
                   <div
                     className="w-4 h-4 rounded-full"
                     style={{
-                      backgroundColor: {
-                        Food: '#10b981',
-                        Transportation: '#3b82f6',
-                        Entertainment: '#8b5cf6',
-                        Shopping: '#f59e0b',
-                        Bills: '#ef4444',
-                        Other: '#6b7280'
-                      }[category.category]
+                      backgroundColor: CATEGORY_COLORS[category.category]
                     }}
                   />
                   <span className="text-sm font-medium text-gray-700">
@@ -111,14 +104,7 @@ export default function Dashboard({ expenses, loading }: DashboardProps) {
                       className="h-2 rounded-full"
                       style={{
                         width: `${category.percentage}%`,
-                        backgroundColor: {
-                          Food: '#10b981',
-                          Transportation: '#3b82f6',
-                          Entertainment: '#8b5cf6',
-                          Shopping: '#f59e0b',
-                          Bills: '#ef4444',
-                          Other: '#6b7280'
-                        }[category.category]
+                        backgroundColor: CATEGORY_COLORS[category.category]
                       }}
                     />
                   </div>
