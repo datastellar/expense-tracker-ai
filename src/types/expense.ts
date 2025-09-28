@@ -4,6 +4,7 @@ export type ExpenseCategory =
   | 'Entertainment'
   | 'Shopping'
   | 'Bills'
+  | 'Healthcare'
   | 'Other'
 
 export interface Expense {
@@ -47,6 +48,7 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'Entertainment',
   'Shopping',
   'Bills',
+  'Healthcare',
   'Other',
 ]
 
@@ -56,5 +58,6 @@ export const CATEGORY_COLORS: Record<ExpenseCategory, string> = {
   Entertainment: '#8b5cf6',
   Shopping: '#f59e0b',
   Bills: '#ef4444',
+  Healthcare: '#06b6d4',
   Other: '#6b7280',
 }
