@@ -1,12 +1,9 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export const metadata: Metadata = {
-  title: 'Expense Tracker',
-  description: 'A modern expense tracking application',
+  title: 'Finance Tracker',
+  description: 'Personal finance management with bank statement import',
 }
 
 export default function RootLayout({
@@ -16,11 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-gray-50">
-          {children}
-        </div>
-      </body>
+      <body className="font-sans">{children}</body>
     </html>
   )
 }

@@ -1,79 +1,55 @@
 'use client'
 
-import React, { useEffect } from 'react'
 import { X } from 'lucide-react'
+import { useEffect } from 'react'
 
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
-  title?: string
+  title: string
   children: React.ReactNode
-  size?: 'sm' | 'md' | 'lg'
+  maxWidth?: string
 }
 
-export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = 'max-w-lg',
+}: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
     }
-
     return () => {
       document.body.style.overflow = 'unset'
     }
   }, [isOpen])
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape)
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape)
-    }
-  }, [isOpen, onClose])
-
   if (!isOpen) return null
 
-  const sizeClasses = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl'
-  }
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        />
-
-        <div className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full ${sizeClasses[size]}`}>
-          <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-            {title && (
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">
-                  {title}
-                </h3>
-                <button
-                  onClick={onClose}
-                  className="rounded-md bg-white text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-            {children}
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
+      <div
+        className={`relative bg-white rounded-xl shadow-xl ${maxWidth} w-full mx-4 max-h-[90vh] overflow-y-auto`}
+      >
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <X size={20} />
+          </button>
         </div>
+        <div className="p-4">{children}</div>
       </div>
     </div>
   )
