@@ -1,4 +1,4 @@
-# Plan: Expense Tracker AI → Personal Finance Management App
+;# Plan: Expense Tracker AI → Personal Finance Management App
 
 ## Context
 

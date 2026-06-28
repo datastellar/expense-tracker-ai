@@ -11,7 +11,7 @@ import FileUpload from '@/components/import/FileUpload'
 import ImportPreview from '@/components/import/ImportPreview'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { createClient } from '@/lib/supabase/client'
-import type { ParsedTransaction, ExpenseCategory } from '@/types'
+import type { ParsedTransaction, ExpenseCategory, StatementMetadata } from '@/types'
 import {
   FileSpreadsheet,
   ArrowLeft,
@@ -33,6 +33,7 @@ export default function ImportPage() {
   const [fileName, setFileName] = useState('')
   const [parsedTransactions, setParsedTransactions] = useState<ParsedTransaction[]>([])
   const [parseError, setParseError] = useState<string | null>(null)
+  const [statementMetadata, setStatementMetadata] = useState<StatementMetadata | null>(null)
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ count: number } | null>(null)
 
@@ -44,15 +45,17 @@ export default function ImportPage() {
 
     try {
       const parser = new MandiriParser()
-      const transactions = parser.parse(data)
+      const result = parser.parse(data)
 
-      if (transactions.length === 0) {
+      if (result.transactions.length === 0) {
         setParseError('Tidak ada transaksi yang ditemukan di file ini.')
         return
       }
 
+      setStatementMetadata(result.metadata)
+
       // Auto-categorize with rule engine
-      const categorized = categorizeTransactions(transactions)
+      const categorized = categorizeTransactions(result.transactions)
       setParsedTransactions(categorized)
       setStep('preview')
     } catch (err) {
@@ -133,6 +136,7 @@ export default function ImportPage() {
     setFileName('')
     setParseError(null)
     setImportResult(null)
+    setStatementMetadata(null)
   }
 
   return (
@@ -207,7 +211,41 @@ export default function ImportPage() {
 
       {/* Step: Preview */}
       {step === 'preview' && (
-        <div className="card">
+        <div className="space-y-4">
+          {statementMetadata && (
+            <div className="card bg-blue-50 border-blue-200">
+              <h4 className="font-medium text-blue-900 mb-2">Info E-Statement</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                {statementMetadata.account_holder && (
+                  <div>
+                    <span className="text-blue-600">Nama:</span>{' '}
+                    <span className="font-medium text-blue-900">{statementMetadata.account_holder}</span>
+                  </div>
+                )}
+                {statementMetadata.period && (
+                  <div>
+                    <span className="text-blue-600">Periode:</span>{' '}
+                    <span className="font-medium text-blue-900">{statementMetadata.period}</span>
+                  </div>
+                )}
+                {statementMetadata.account_number && (
+                  <div>
+                    <span className="text-blue-600">Rekening:</span>{' '}
+                    <span className="font-medium text-blue-900">{statementMetadata.account_number}</span>
+                  </div>
+                )}
+                {statementMetadata.initial_balance !== undefined && (
+                  <div>
+                    <span className="text-blue-600">Saldo Awal:</span>{' '}
+                    <span className="font-medium text-blue-900">
+                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(statementMetadata.initial_balance)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          <div className="card">
           <h3 className="font-medium text-gray-900 mb-4">
             Preview: {fileName}
           </h3>
@@ -219,6 +257,7 @@ export default function ImportPage() {
             loading={importing}
             hasGeminiKey={!!profile?.gemini_api_key}
           />
+        </div>
         </div>
       )}
 

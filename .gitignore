@@ -134,3 +134,6 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+# Sensitive financial data files
+*.xlsx
+*.xls

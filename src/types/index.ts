@@ -89,6 +89,18 @@ export interface Profile {
   created_at: string
 }
 
+export type TransactionMethod =
+  | 'qr_payment'
+  | 'bi_fast'
+  | 'ecommerce'
+  | 'biller'
+  | 'atm'
+  | 'auto_debit'
+  | 'salary'
+  | 'bank_fee'
+  | 'mandiri_transfer'
+  | 'other'
+
 export interface ParsedTransaction {
   date: string
   description: string
@@ -99,6 +111,28 @@ export interface ParsedTransaction {
   is_transfer: boolean
   categorized_by: 'rule' | 'ai' | 'manual'
   confidence: number // 0-1, how confident the categorization is
+
+  // Enriched fields from description parsing
+  transaction_method?: TransactionMethod
+  merchant_name?: string
+  counterparty_name?: string
+  counterparty_bank?: string
+  counterparty_account?: string
+  reference_code?: string
+  purpose?: string
+  time?: string
+}
+
+export interface StatementMetadata {
+  account_holder?: string
+  branch?: string
+  period?: string
+  account_number?: string
+  currency?: string
+  initial_balance?: number
+  closing_balance?: number
+  total_incoming?: number
+  total_outgoing?: number
 }
 
 export interface TransactionFormData {

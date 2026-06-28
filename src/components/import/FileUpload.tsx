@@ -1,17 +1,47 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, FileSpreadsheet, X, AlertCircle } from 'lucide-react'
+import { Upload, FileSpreadsheet, X, AlertCircle, Lock } from 'lucide-react'
 
 interface FileUploadProps {
   onFileLoaded: (data: ArrayBuffer, fileName: string) => void
+  showPasswordField?: boolean
 }
 
-export default function FileUpload({ onFileLoaded }: FileUploadProps) {
+export default function FileUpload({ onFileLoaded, showPasswordField = true }: FileUploadProps) {
   const [dragging, setDragging] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [password, setPassword] = useState('')
+  const [rawFile, setRawFile] = useState<File | null>(null)
+  const [processing, setProcessing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const processFile = async (file: File, pwd: string) => {
+    setProcessing(true)
+    setError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      if (pwd) formData.append('password', pwd)
+
+      const res = await fetch('/api/decrypt', { method: 'POST', body: formData })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Gagal memproses file')
+      }
+
+      const decrypted = await res.arrayBuffer()
+      onFileLoaded(decrypted, file.name)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal memproses file'
+      setError(msg)
+    } finally {
+      setProcessing(false)
+    }
+  }
 
   const handleFile = (file: File) => {
     setError(null)
@@ -27,16 +57,17 @@ export default function FileUpload({ onFileLoaded }: FileUploadProps) {
     }
 
     setFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const data = e.target?.result as ArrayBuffer
-      onFileLoaded(data, file.name)
+    setRawFile(file)
+
+    if (!showPasswordField) {
+      processFile(file, '')
     }
-    reader.onerror = () => {
-      setError('Gagal membaca file')
-      setFileName(null)
+  }
+
+  const handleSubmitPassword = () => {
+    if (rawFile) {
+      processFile(rawFile, password)
     }
-    reader.readAsArrayBuffer(file)
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -54,23 +85,54 @@ export default function FileUpload({ onFileLoaded }: FileUploadProps) {
   const handleClear = () => {
     setFileName(null)
     setError(null)
+    setRawFile(null)
+    setPassword('')
     if (inputRef.current) inputRef.current.value = ''
   }
 
   return (
     <div>
       {fileName ? (
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <FileSpreadsheet className="text-blue-600" size={24} />
-            <div>
-              <p className="font-medium text-sm text-gray-900">{fileName}</p>
-              <p className="text-xs text-gray-500">File siap diproses</p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <FileSpreadsheet className="text-blue-600" size={24} />
+              <div>
+                <p className="font-medium text-sm text-gray-900">{fileName}</p>
+                <p className="text-xs text-gray-500">
+                  {processing ? 'Memproses file...' : 'Masukkan password untuk melanjutkan'}
+                </p>
+              </div>
             </div>
+            <button onClick={handleClear} className="text-gray-400 hover:text-gray-600">
+              <X size={20} />
+            </button>
           </div>
-          <button onClick={handleClear} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
-          </button>
+
+          {showPasswordField && rawFile && (
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSubmitPassword()
+                  }}
+                  placeholder="Password e-statement (biasanya tanggal lahir DDMMYYYY)"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <button
+                onClick={handleSubmitPassword}
+                disabled={!password || processing}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {processing ? 'Memproses...' : 'Buka'}
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div
